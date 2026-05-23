@@ -93,9 +93,8 @@
       transition: 0.3s;
     }
     .stat-card:hover { transform: translateY(-5px); }
-    .stat-number { font-size: 1.8rem; font-weight: 800; color: var(--primary); display: block; }
-    .stat-label { font-size: 0.9rem; color: #555; font-weight: 600; }
-    .stat-icon { font-size: 2rem; color: var(--accent); margin-bottom: 12px; }
+    .stat-number-wrapper { font-size: 1.8rem; font-weight: 800; color: var(--primary); display: block; direction: ltr; }
+    .stat-label { font-size: 0.9rem; color: #555; font-weight: 600; display: block; margin-top: 5px; }
 
     /* --- قسم الكروت الذكية (المعلومات) --- */
     .info-card {
@@ -110,7 +109,7 @@
     }
     .info-card:hover {
       transform: translateY(-8px);
-      box-shadow: 0 15px 35px rgba(46, 125, 50, 0.08); /* تم تغيير الظل ليناسب الأخضر */
+      box-shadow: 0 15px 35px rgba(46, 125, 50, 0.08);
     }
     .info-card-icon-wrapper {
       width: 70px;
@@ -204,7 +203,7 @@
 
     .btn-auth-nav {
       background: var(--white);
-      color: var(--primary) !important; /* لون الخط داخل الزر أصبح أخضر */
+      color: var(--primary) !important;
       font-weight: 700;
       border-radius: 8px;
       padding: 8px 20px !important;
@@ -259,34 +258,31 @@
     </div>
   </section>
 
+  <!-- قسم الإحصائيات مع خاصية العداد التفاعلي الذكي -->
   <section class="py-5 bg-light" id="stats">
     <div class="container">
       <div class="row g-3 row-cols-2 row-cols-md-4">
         <div class="col" data-aos="fade-up">
           <div class="stat-card">
-            <i class="fa-solid fa-graduation-cap stat-icon"></i>
-            <span class="stat-number">+8000</span>
+            <div class="stat-number-wrapper">+<span class="counter-value" data-target="8000">0</span></div>
             <span class="stat-label">عضو في الاربطة </span>
           </div>
         </div>
         <div class="col" data-aos="fade-up" data-aos-delay="100">
           <div class="stat-card">
-            <i class="fa-solid fa-mosque stat-icon"></i>
-            <span class="stat-number">90</span>
+            <div class="stat-number-wrapper"><span class="counter-value" data-target="90">0</span></div>
             <span class="stat-label">مشرفين </span>
           </div>
         </div>
         <div class="col" data-aos="fade-up" data-aos-delay="200">
           <div class="stat-card">
-            <i class="fa-solid fa-user-tie stat-icon"></i>
-            <span class="stat-number">80</span>
+            <div class="stat-number-wrapper"><span class="counter-value" data-target="80">0</span></div>
             <span class="stat-label">مجموعات </span>
           </div>
         </div>
         <div class="col" data-aos="fade-up" data-aos-delay="300">
           <div class="stat-card">
-            <i class="fa-solid fa-book-open-reader stat-icon"></i>
-            <span class="stat-number">20000+</span>
+            <div class="stat-number-wrapper">+<span class="counter-value" data-target="20000">0</span></div>
             <span class="stat-label">الحضور </span>
           </div>
         </div>
@@ -391,11 +387,8 @@
         </div>
         
         <div class="col-lg-3 col-md-4 col-12">
-          
           <ul>
-            <li>
-             
-            </li>
+            <li></li>
           </ul>
         </div>
 
@@ -410,22 +403,59 @@
         </div>
       </div>
     </div>
-  </footer >
+  </footer>
 
   <div class="modal fade" id="certModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
       <div class="modal-content" style="border-radius: 12px; border: none; overflow: hidden;">
-        <div class="modal-header p-2 bg-light">
-          
-        
+        <div class="modal-header p-2 bg-light"></div>
       </div>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/aos@2.3.1/dist/aos.js"></script>
+  
   <script>
     AOS.init({ duration: 1000, once: true });
+
+    // كود جافا سكريبت لتشغيل عداد الإحصائيات التفاعلي بسلاسة وسرعة مناسبة
+    document.addEventListener("DOMContentLoaded", () => {
+      const counters = document.querySelectorAll('.counter-value');
+      const speed = 60; // يتحكم في سرعة حركة الأرقام (كلما قل الرقم زادت السرعة)
+
+      const startCounter = (counter) => {
+        const target = parseInt(counter.getAttribute('data-target'));
+        let count = 0;
+        
+        // حساب مقدار الزيادة في كل خطوة بناءً على حجم الرقم المستهدف
+        const increment = Math.ceil(target / speed);
+
+        const updateCount = () => {
+          count += increment;
+          if (count < target) {
+            counter.innerText = count.toLocaleString('en-US'); // تنسيق الفواصل للأرقام الكبيرة
+            setTimeout(updateCount, 20);
+          } else {
+            counter.innerText = target.toLocaleString('en-US');
+          }
+        };
+
+        updateCount();
+      };
+
+      // مراقبة الشاشة: لا يبدأ العداد إلا عندما يصل المستخدم لقسم الإحصائيات
+      const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            startCounter(entry.target);
+            observer.unobserve(entry.target); // إيقاف المراقبة بعد العمل لأول مرة لتوفير الأداء
+          }
+        });
+      }, { threshold: 0.5 }); // يبدأ عندما يظهر نصف المربع على الأقل في الشاشة
+
+      counters.forEach(counter => observer.observe(counter));
+    });
   </script>
 </body>
 </html>
